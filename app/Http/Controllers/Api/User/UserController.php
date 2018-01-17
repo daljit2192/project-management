@@ -99,7 +99,7 @@ class UserController extends Controller
         
     }
 
-     public function get_user() {
+    public function get_user() {
         try {
             $user = JWTAuth::parseToken()->toUser();
             $user = UserRepository::get_single_user($user->id);
@@ -150,13 +150,13 @@ class UserController extends Controller
         try {
             $user = JWTAuth::parseToken()->toUser();
             $validator = Validator::make($request->all(), [
-                        'password' => 'required|string|min:6|confirmed'
+                'password' => 'required|string|min:6|confirmed'
             ]);
             if ($validator->fails()) {
                 $errors = $validator->getMessageBag()->toArray();
                 return response()->json(array(
-                            'status' => FALSE,
-                            'errors' => $errors
+                    'status' => FALSE,
+                    'errors' => $errors
                 ));
             } else {
                 $current_password = UserRepository::check_password($request->current_password);
@@ -182,6 +182,16 @@ class UserController extends Controller
             $response['errors'] = TRUE;
             $response['message'] = $e->getMessage();
             return response()->json($response, 500);
+        }
+    }
+
+    public function get_all_user(){
+        $users = UserRepository::get_all_user();
+        if(count($users) > 0){
+            $response['status'] = TRUE;
+            $response['errors'] = FALSE;
+            $response['users'] = $users;
+            return response()->json($response, 200);        
         }
     }
 }

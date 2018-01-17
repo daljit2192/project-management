@@ -12,3 +12,7 @@ Route::group(['namespace' => 'User', 'middleware' => 'jwt.auth', 'prefix' => 'us
     Route::post('update', 'UserController@update_user')->name('get_user');
     Route::post('update/password', 'UserController@change_password')->name('change_password');
 });
+
+Route::group(['namespace' => 'User', 'middleware' => 'jwt.auth', 'prefix' => 'users/', 'as' => 'users.'], function () {
+    Route::get('', 'UserController@get_all_user')->name('get_all_user');
+});

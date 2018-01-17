@@ -5,6 +5,7 @@ namespace App\Repositories\Api\User;
 use App\Models\Access\User\User;
 use Illuminate\Support\Facades\DB;
 use App\Exceptions\GeneralException;
+use App\Repositories\Api\ProjectAssignees\ProjectAssignees;
 use App\Repositories\BaseRepository;
 use Illuminate\Support\Facades\Hash;
 use App\Models\Access\User\SocialLogin;
@@ -76,6 +77,15 @@ class UserRepository extends BaseRepository
         }
         else{
             return false;
+        }
+    }
+
+    public static function get_all_user(){
+        $user = User::all();
+        if(count($user->toArray())){
+            return $user->toArray();
+        } else {
+            return array();
         }
     }
 }
