@@ -5,6 +5,7 @@ Route::group(['namespace' => 'Project', 'middleware' => 'jwt.auth', 'prefix' => 
     Route::post('/update', 'ProjectController@update_project')->name('update_project');
     Route::get('/handle/{project_name}', 'ProjectController@get_project_handle')->name('get_project_handle');
     Route::get('/{handle}/', 'ProjectController@get_single_project')->name('get_single_project');
+    Route::delete('/{handle}/', 'ProjectController@delete_project')->name('delete_project');
 });
 
 Route::group(['namespace' => 'Project', 'middleware' => 'jwt.auth', 'prefix' => 'projects/', 'as' => 'projects.'], function () {

@@ -28,7 +28,7 @@ class Project extends Authenticatable
     protected $dates = ['deleted_at'];
 
     
-    protected $fillable = ['handle', 'name','status','created_by', 'created_at', 'updated_at'];
+    protected $fillable = ['handle', 'name','status','created_by', 'privacy_status', 'created_at', 'updated_at'];
 
     public function statuses() {
         return $this->hasMany('App\Models\Access\Statuses\Statuses', 'id', 'status');

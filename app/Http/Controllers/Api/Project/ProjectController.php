@@ -30,14 +30,23 @@ class ProjectController extends Controller
                 'errors' => $errors
             ));
         } else {
-            $projectCreate = ProjectRepository::create_project($request->all());
-            if(isset($projectCreate) && !empty($projectCreate)){
-                $response['status'] = TRUE;
-                $response['project'] = $projectCreate->toArray();
-                $response['message'] = "Project create successfully.";
-                return response()->json($response, 201);
+            $checkProjectHandle = Project::where("handle",$request["handle"])->get();
+            if(count($checkProjectHandle) == 0){
+                $projectCreate = ProjectRepository::create_project($request->all());
+                if(isset($projectCreate) && !empty($projectCreate)){
+                    $response['status'] = TRUE;
+                    $response['project'] = $projectCreate->toArray();
+                    $response['message'] = "Project create successfully.";
+                    return response()->json($response, 201);
+                } else {
+                    $response['status'] = FALSE;
+                    $response['message'] = "Some error occured while creating project, please try again.";
+                    return response()->json($response, 201);
+                }
             } else {
-
+                $response['status'] = FALSE;
+                $response['message'] = "Handle already taken.";
+                return response()->json($response, 201);
             }
         }
     }
@@ -129,6 +138,14 @@ class ProjectController extends Controller
             return response()->json($response, 201);
         }
 
+    }
+
+    public function delete_project($handle){
+
+        $deleteStatus = ProjectRepository::delete_project($handle);
+        $response['status'] = TRUE;
+        $response['message'] = "Project deleted.";
+        return response()->json($response, 201);
     }
 
 }

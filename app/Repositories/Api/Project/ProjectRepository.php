@@ -16,12 +16,15 @@ use Tymon\JWTAuth\Facades\JWTAuth;
 class ProjectRepository extends BaseRepository
 {
 
+	/* Function will store project details in projects table and requires project details as $request param */
     public static function create_project($request) {
         $user = JWTAuth::parseToken()->toUser();
 
-        //create object of project for update project Detail
+        /* create object of project for update project Detail */
         $createSingleProject = new Project;
         $createSingleProject->fill($request);
+
+        /* Get current login user ID from JWT AUTH token */
         $createSingleProject->created_by = $user->id;
         if ($createSingleProject->save()) {
             $assignProjectDetails = array(
@@ -29,6 +32,8 @@ class ProjectRepository extends BaseRepository
                 "user_id" => $request["users"],
                 "created_by" => $user->id,
             );
+
+            /* AFter saving project call function that will save assignees of project in database */
             $saveAssigneeStatus = self::save_project_assigness($request["users"], $assignProjectDetails);
             if($saveAssigneeStatus){
                 return $createSingleProject;
@@ -40,6 +45,8 @@ class ProjectRepository extends BaseRepository
         }
     }
 
+
+    /* Function that will update project details and also assignees details if changes */
     public static function update_project($request) {
         $user = JWTAuth::parseToken()->toUser();
         $updateSingleProject = Project::find($request["id"]);
@@ -50,6 +57,8 @@ class ProjectRepository extends BaseRepository
                 "user_id" => $request["users"],
                 "created_by" => $user->id,
             );
+
+            /* Check if their is any assignee of the project if not, then save the new assignees in db */
             $currentProjectAssignee = ProjectAssignees::where("project_id", $updateSingleProject->id)->get();
             if (count($currentProjectAssignee) == 0) {
 
@@ -59,8 +68,11 @@ class ProjectRepository extends BaseRepository
                 }
             } else {
 
+            	 /* If assignees already exist then check for change in new assignees and current assignees */
                 $currentAssignees = [];
                 foreach ($currentProjectAssignee as $projectAssignee) {
+
+                	/* Create array with only ids of current assignees */
                     array_push($currentAssignees, $projectAssignee->user_id);
                 }
                 $updateProjectAssignee = self::update_project_assignee($assignProjectDetails, $currentAssignees);
@@ -73,10 +85,13 @@ class ProjectRepository extends BaseRepository
         }
     }
 
+    /* Function will update assignees of project */
     public static function update_project_assignee($request, $currentAssignees) {
         $user = JWTAuth::parseToken()->toUser();
+        
         /* Check if assignees array user_id is empty or not */
         if ($request["user_id"] != null || $request["user_id"] != "") {
+
             $newAssignees = [];
             $newAssignees = explode(",", $request["user_id"]);
             $common = array_intersect($currentAssignees, $newAssignees);
@@ -89,10 +104,14 @@ class ProjectRepository extends BaseRepository
             );
 
             if (!empty($addNewAssignee)) {
+
+            	/* Function will add new assignees in project_assignees table */
                 $newAssignee = self::assign_project($projectAssigneeDetails);
             }
 
             if (!empty($deleteAssignee)) {
+
+            	/* Function will delete excluded assignees from project_assignees table */
                 $deleteAssignee = self::delete_project_assignee($deleteAssignee, $request["project_id"]);
             }
             return true;
@@ -101,6 +120,7 @@ class ProjectRepository extends BaseRepository
         }
     }
 
+    /* Function will set assignee of project */
     public static function assign_project($request) {
         try {
             $user = JWTAuth::parseToken()->toUser();
@@ -207,12 +227,16 @@ class ProjectRepository extends BaseRepository
     public static function get_all_user_projects() {
         $user = JWTAuth::parseToken()->toUser();
         $allProjects = array();
+
+        /* Following section of code will get all the projects that are created by login user */
         $getUserProjects = Project::where("created_by",$user->id)->with("statuses")->with("user")->get();
         if(count($getUserProjects->toArray())>0){
             foreach($getUserProjects->toArray() as $value) {
                 array_push($allProjects, $value);
             }
         }
+
+        /* Following section of code will get all projects that are assigned to currently login user */
         $getAssignedProjects = ProjectAssignees::where("user_id",$user->id)->get();
         if(count($getAssignedProjects->toArray())>0){
             foreach($getAssignedProjects->toArray() as $value) {
@@ -223,6 +247,7 @@ class ProjectRepository extends BaseRepository
         return $allProjects;
     }
 
+    /* Function will get all detailes of project according to handle */
     public static function get_single_project($handle) {
         $user = JWTAuth::parseToken()->toUser();
         $projectDetails = Project::where("handle",$handle)->with("statuses")->with("user")->with("assignees.user")->first();
@@ -231,6 +256,21 @@ class ProjectRepository extends BaseRepository
         } else {
             return array();            
         }
+    }
+
+    /* Function will delete project and its assigness from project_assignees */
+    public static function delete_project($handle){
+        $getProject = Project::where("handle",$handle)->first();
+        $deleteAssigneeStatus = ProjectAssignees::where("project_id",$getProject->id)->delete();
+        if($deleteAssigneeStatus){
+            if($getProject->delete()){
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }        
     }
 
 }
