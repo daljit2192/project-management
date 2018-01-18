@@ -31,7 +31,9 @@ class ProjectController extends Controller
             ));
         } else {
             $checkProjectHandle = Project::where("handle",$request["handle"])->get();
-            if(count($checkProjectHandle) == 0){
+            $checkProjectHandleInDeleted = Project::where("handle",$request["handle"])->onlyTrashed()->count();
+            
+            if(count($checkProjectHandle) == 0 && $checkProjectHandleInDeleted == 0){
                 $projectCreate = ProjectRepository::create_project($request->all());
                 if(isset($projectCreate) && !empty($projectCreate)){
                     $response['status'] = TRUE;
