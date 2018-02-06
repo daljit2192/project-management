@@ -11,12 +11,20 @@ use Tymon\JWTAuth\Facades\JWTAuth;
  */
 class StatusController extends Controller
 { 
+	/* Function will return all the statses value from database */
     public function get_all_statuses(){
         $statuses = Statuses::all();
-        $response['status'] = TRUE;
-        $response['statuses'] = $statuses->toArray();
-        $response['message'] = "All status fetched successfully.";
-        return response()->json($response, 201);
+        if(count($statuses) > 0){
+	        $response['status'] = TRUE;
+	        $response['statuses'] = $statuses->toArray();
+	        $response['message'] = "All status fetched successfully.";
+	        return response()->json($response, 201);
+        } else {
+        	$response['status'] = FALSE;
+        	$response['statuses'] = array();
+	        $response['message'] = "No status found.";
+	        return response()->json($response, 201);
+        }
     }    
 }
 

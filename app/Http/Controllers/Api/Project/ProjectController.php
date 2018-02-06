@@ -16,13 +16,16 @@ use Illuminate\Http\Request;
 class ProjectController extends Controller
 { 
 
+    /* Function called from route file to create new project */
     public function create_project(Request $request){
 
+        /* Validator is used to validate all the details which are recived in the $request */
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:191',
             'handle' => 'required|string|max:191',
         ]);
         
+        /* fails() will return tru only if any of details which validator checks is no valid */
         if ($validator->fails()) {
             $errors = $validator->getMessageBag()->toArray();
             return response()->json(array(
@@ -30,10 +33,11 @@ class ProjectController extends Controller
                 'errors' => $errors
             ));
         } else {
-            $checkProjectHandle = Project::where("handle",$request["handle"])->get();
-            $checkProjectHandleInDeleted = Project::where("handle",$request["handle"])->onlyTrashed()->count();
+
+            /* Check if any entry of handle exist in database */
+            $checkProjectHandle = Project::where("handle",$request["handle"])->withTrashed()->get();
             
-            if(count($checkProjectHandle) == 0 && $checkProjectHandleInDeleted == 0){
+            if(count($checkProjectHandle) == 0){
                 $projectCreate = ProjectRepository::create_project($request->all());
                 if(isset($projectCreate) && !empty($projectCreate)){
                     $response['status'] = TRUE;
@@ -53,6 +57,7 @@ class ProjectController extends Controller
         }
     }
 
+    /* Function will update project details after validating requests */
     public function update_project(Request $request){
 
         $validator = Validator::make($request->all(), [
@@ -68,7 +73,7 @@ class ProjectController extends Controller
             ));
         } else {
 
-            $checkProjectHandle = Project::where("handle",$request["handle"])->get();
+            $checkProjectHandle = Project::where("handle",$request["handle"])->withTrashed()->get();
             if(count($checkProjectHandle) == 0){
                 $projectUpdate = ProjectRepository::update_project($request->all());
                 if(isset($projectUpdate) && !empty($projectUpdate)){
@@ -100,6 +105,8 @@ class ProjectController extends Controller
             }
         }
     }
+
+    /* Function will generate handle of the project relating with project passed as parameter */
     public function get_project_handle($project_name){
 
         $projectHandleCreate = ProjectRepository::create_project_handle($project_name);
@@ -107,9 +114,9 @@ class ProjectController extends Controller
         $response['handle'] = $projectHandleCreate;
         $response['message'] = "Handle generated successfully.";
         return response()->json($response, 201);
-
     }
 
+    /* Function will return all user which are assigned to the project */
     public function get_all_user_projects(){
 
         $projects = ProjectRepository::get_all_user_projects();
@@ -123,9 +130,9 @@ class ProjectController extends Controller
             $response['message'] = "No projects found.";
             return response()->json($response, 201);
         }
-
     }
 
+    /* Function will return single project details depending upon $handle passed as parameter */
     public function get_single_project($handle){
 
         $project = ProjectRepository::get_single_project($handle);
@@ -142,6 +149,7 @@ class ProjectController extends Controller
 
     }
 
+    /* Funciton which will delete project and all of its assignees from the databse */
     public function delete_project($handle){
 
         $deleteStatus = ProjectRepository::delete_project($handle);

@@ -23,6 +23,7 @@ class AccessTableSeeder extends Seeder
         $this->call(RoleTableSeeder::class);
         $this->call(UserRoleSeeder::class);
         $this->call(StatusesTableSeeder::class);
+        $this->call(PriortyTableSeeder::class);
         $this->call(PermissionTableSeeder::class);
         $this->call(PermissionRoleSeeder::class);
 

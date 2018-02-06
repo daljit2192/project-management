@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Password;
 class UserController extends Controller
 { 
 
+    /* Function will register new user after validating all request data */
     public function registerUser(Request $request){
 
         $validator = Validator::make($request->all(), [
@@ -33,13 +34,12 @@ class UserController extends Controller
         } else {
             $userRegisterStatus = UserRepository::registerUser($request->all());
             if($userRegisterStatus["status"]){
-
                 return response()->json($userRegisterStatus,200);
-
             }
         }
     }
 
+    /* Function will login user only after validating details and matching credentials with database */
     public function loginUser(Request $request){
         try {
             // validate form data need to move this to request folder
@@ -82,6 +82,7 @@ class UserController extends Controller
         }
     }
 
+    /* Function will logout user, i.e will delete or destroy JWT token which was generated at the time of login */
     public function logoutUser($token){
         if(JWTAuth::getToken() !== 1){
             if(JWTAuth::invalidate($token) == 1){
@@ -99,6 +100,7 @@ class UserController extends Controller
         
     }
 
+    /* Function will single user details using JWT token */
     public function get_user() {
         try {
             $user = JWTAuth::parseToken()->toUser();
@@ -122,6 +124,7 @@ class UserController extends Controller
         }
     }
 
+    /* Function will update user details received in $request parameter */
     public function update_user(Request $request) {
         try {
             $user = JWTAuth::parseToken()->toUser();
@@ -146,9 +149,12 @@ class UserController extends Controller
         }
     }
 
+    /* Function will change password of user */
     public function change_password(Request $request) {
         try {
             $user = JWTAuth::parseToken()->toUser();
+
+            /* Validate password before updating */
             $validator = Validator::make($request->all(), [
                 'password' => 'required|string|min:6|confirmed'
             ]);
@@ -159,8 +165,12 @@ class UserController extends Controller
                     'errors' => $errors
                 ));
             } else {
+
+                /* Match entered password with the current password of user */
                 $current_password = UserRepository::check_password($request->current_password);
                 if (isset($current_password) && !empty($current_password) && $current_password) {
+
+                    /* Call to repository function that will change password */
                     $changePassword = UserRepository::change_password($request);
                     if (isset($changePassword) && !empty($changePassword) && $changePassword) {
                         $response['status'] = TRUE;

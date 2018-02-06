@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Repositories\Api\Project;
+namespace App\Repositories\Api\task;
 
-use App\Models\Access\Project\Project;
+use App\Models\Access\Task\Task;
 use App\Models\Access\ProjectAssignees\ProjectAssignees;
 use App\Models\Access\User\User;
 use Illuminate\Support\Facades\DB;
@@ -13,7 +13,7 @@ use Tymon\JWTAuth\Facades\JWTAuth;
 /**
  * Class ProjectRepository.
  */
-class ProjectRepository extends BaseRepository
+class TaskRepository extends BaseRepository
 {
 
 	/* Function will store project details in projects table and requires project details as $request param */
