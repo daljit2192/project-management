@@ -31,7 +31,6 @@ class TaskController extends Controller
 			));
 		} else {
 			$addTask = TaskRepository::add_task($request->all());
-			print_r($addTask);die;
 			if( count($addTask)>0 && isset($addTask)){
 				$response['status'] = TRUE;
 				$response['tasks'] = $addTask;
@@ -41,6 +40,36 @@ class TaskController extends Controller
 				$response['status'] = FALSE;
 				$response['tasks'] = array();
 				$response['message'] = "Error occured while adding task. Please try again.";
+				return response()->json($response, 201);
+			}
+		}
+
+	}
+
+	/* Function which will validate data and pass to repository function to store it in database */
+	public function update_task(Request $request){
+		$validator = Validator::make($request->all(), [
+			'name' => 'required|string|max:191',
+		]);
+
+		if ($validator->fails()) {
+			$errors = $validator->getMessageBag()->toArray();
+			return response()->json(array(
+				'status' => FALSE,
+				'errors' => $errors
+			));
+		} else {
+			$updateTask = TaskRepository::update_task($request->all());
+			if(count($updateTask)>0 && !empty($updateTask) && isset($updateTask)){
+				$upddateTaskAssignee = TaskRepository::update_task_assignee($request, $updateTask["id"]);
+				$response['status'] = TRUE;
+				$response['tasks'] = $updateTask;
+				$response['message'] = "Tasks updated successfully.";
+				return response()->json($response, 201);
+			} else {
+				$response['status'] = FALSE;
+				$response['tasks'] = array();
+				$response['message'] = "Error occured while updating task. Please try again.";
 				return response()->json($response, 201);
 			}
 		}
@@ -78,10 +107,20 @@ class TaskController extends Controller
 
 		/* If task details found then return response with fetched task */
 		if(count($getTaskDetails)>0 && isset($getTaskDetails) && !empty($getTaskDetails)){
-			$response['status'] = TRUE;
-			$response['task'] = $getTaskDetails;
-			$response['message'] = "Tasks fetched successfully.";
-			return response()->json($response, 201);
+			$getTaskAssignees = TaskRepository::get_task_assignees($taskId);
+			if(count($getTaskAssignees)>0 && isset($getTaskAssignees) && !empty($getTaskAssignees)){
+				$response['status'] = TRUE;
+				$response['assignees'] = $getTaskAssignees;
+				$response['task'] = $getTaskDetails;
+				$response['message'] = "Tasks fetched successfully.";
+				return response()->json($response, 201);
+			} else {
+				$response['status'] = TRUE;
+				$response['assignees'] = array();
+				$response['task'] = $getTaskDetails;
+				$response['message'] = "Tasks fetched successfully.";
+				return response()->json($response, 201);
+			}
 		} else {
 
 			/* If task details not found, then set status false and return response with message */
