@@ -6,7 +6,8 @@ Route::group(['namespace' => 'Task', 'middleware' => 'jwt.auth', 'prefix' => 'ta
 
 Route::group(['namespace' => 'Task', 'middleware' => 'jwt.auth', 'prefix' => 'task/', 'as' => 'tasks.'], function () {
     Route::post('', 'TaskController@add_task')->name('add_task');
-    Route::post('', 'TaskController@update_task')->name('update_task');
+    Route::patch('', 'TaskController@update_task')->name('update_task');
+    Route::delete('{id}', 'TaskController@destroy')->name('destroy');
     Route::get('/priorities/', 'TaskController@get_priorities')->name('get_all_project_tasks');
     Route::get('/{task_id}', 'TaskController@get_single_task')->name('get_single_task');
 });

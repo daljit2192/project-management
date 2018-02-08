@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Task;
 
 use App\Models\Access\Task\Task;
+use App\Models\Access\TaskAssignees\TaskAssignees;
 use App\Models\Access\Priority\Priority;
 use App\Http\Controllers\Controller;
 use App\Repositories\Api\Task\TaskRepository;
@@ -128,6 +129,40 @@ class TaskController extends Controller
 			$response['message'] = "Task details not found.";
 			return response()->json($response, 201);
 		}	
+	}
+
+	//function for soft delete a single Task.
+	public function destroy($id) {
+		try {
+			$getTaskAssignees = TaskAssignees::where("task_id", $id)->get();
+			if (count($getTaskAssignees) > 0 && !empty($getTaskAssignees) && isset($getTaskAssignees)) {
+				$assigneesId = array();
+				foreach ($getTaskAssignees as $taskAssignee) {
+					array_push($assigneesId, $taskAssignee->user_id);
+				}
+				$deleteStatus = TaskRepository::delete_task_assignee($assigneesId, $id);
+				$deleteAssigneeStatus = $deleteStatus;
+			} else {
+				$deleteAssigneeStatus = true;
+			}
+			if ($deleteAssigneeStatus) {
+				$deleteSingletask = Task::find($id);
+				if ($deleteSingletask->forceDelete()) {
+					$response['status'] = TRUE;
+					$response['message'] = "Task delete successfully.";
+					return response()->json($response, 200);
+				}
+			} else {
+				$response['status'] = False;
+				$response['message'] = "Error occured while deleting tasks assignees.";
+				return response()->json($response, 200);
+			}
+		} catch (\Exception $e) {
+			$response['status'] = FALSE;
+			$response['errors'] = TRUE;
+			$response['message'] = $e->getMessage();
+			return response()->json($response, 500);
+		}
 	}
 }
 
