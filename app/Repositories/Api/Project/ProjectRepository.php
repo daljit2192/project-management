@@ -1,14 +1,16 @@
 <?php
-
 namespace App\Repositories\Api\Project;
 
 use App\Models\Access\Project\Project;
+use App\Models\Access\Notification\Notification;
+use App\Models\Access\NotificationType\NotificationType;
 use App\Models\Access\ProjectAssignees\ProjectAssignees;
 use App\Models\Access\User\User;
 use Illuminate\Support\Facades\DB;
 use App\Exceptions\GeneralException;
 use App\Repositories\BaseRepository;
 use Tymon\JWTAuth\Facades\JWTAuth;
+use Illuminate\Support\Facades\Mail;
 
 /**
  * Class ProjectRepository.
@@ -124,13 +126,13 @@ class ProjectRepository extends BaseRepository
     public static function assign_project($request) {
         try {
             $user = JWTAuth::parseToken()->toUser();
+
             /* Check if assignees array user_id is empty or not */
             if ($request["user_id"] != null || $request["user_id"] != "") {
 
                 /* Explode array of user id */
                 $userIdArray = explode(",", $request["user_id"]);
                 $status = false;
-                $newAssignee = array();
                 for ($i = 0; $i < count($userIdArray); $i++) {
                     $assigneeDetails = array(
                         "project_id" => $request["project_id"],
@@ -144,10 +146,12 @@ class ProjectRepository extends BaseRepository
                     } else {
                         $status = false;
                     }
+                    $project = Project::find($request["project_id"]);
                     $userData = User::find($userIdArray[$i]);
-                    array_push($newAssignee, $userData->first_name . " " . $userData->last_name);
+                    $message = $user->first_name." ".$user->last_name." added ".$userData->first_name."".$userData->last_name." to project ".$project->name;
+                    $saveNotification = self::save_notification($userIdArray[$i],$message);
+                    $status = $saveNotification;
                 }
-
                 return $status;
             } else {
                 return true;
@@ -157,6 +161,28 @@ class ProjectRepository extends BaseRepository
             Log::error($date->toDateTimeString() . ' => Error occured while adding project assignee.');
             $e->message();
         }
+    }
+
+    /* Function will save notifcation related to projects in database */
+    public static function save_notification($userId,$message){
+
+        /* Call to function that will return type of notification of project */
+        $notificationType = self::get_notification_type();
+        $notification = new Notification();
+        $notification->type_id = $notificationType;
+        $notification->user_id = $userId;
+        $notification->message = $message;
+        if($notification->save()){
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /* Function to get notification type depending upon name of type */
+    public static function get_notification_type(){
+        $getNotificationType = NotificationType::where("name","projects")->first();
+        return $getNotificationType->id;
     }
 
     /* Function that will delete project assignee which are removed whlle updating project */
@@ -171,6 +197,11 @@ class ProjectRepository extends BaseRepository
                 } else {
                 	$status = false;
                 }
+                $project = Project::find($projectId);
+                $userData = User::find($assignee);
+                $message = $user->first_name." ".$user->last_name." removed ".$userData->first_name."".$userData->last_name." from project ".$project->name;
+                $saveNotification = self::save_notification($assignee,$message);
+                $status = $saveNotification;
             }
             return $status;
         } catch (Exception $e) {
@@ -197,6 +228,11 @@ class ProjectRepository extends BaseRepository
             } else {
                 $status = false;
             }
+            $project = Project::find($request["project_id"]);
+            $userData = User::find($userIdArray[$i]);
+            $message = $user->first_name." ".$user->last_name." added ".$userData->first_name."".$userData->last_name." to project ".$project->name;
+            $saveNotification = self::save_notification($userIdArray[$i],$message);
+            $status = $saveNotification;
         }
         return $status;
     }
@@ -249,11 +285,17 @@ class ProjectRepository extends BaseRepository
                 array_push($allProjects, $project->toArray());
             }
         }
+        // return array_unique($allProjects);
         return $allProjects;
     }
 
     /* Function will get all detailes of project according to handle */
     public static function get_single_project($handle) {
+        $userDetails = auth()->user();
+        Mail::raw('Sending emails with Mailgun and Laravel is easy!', function($message)
+        {
+            $message->to('kft.daljit@gmail.com');
+        });
         $user = JWTAuth::parseToken()->toUser();
         $projectDetails = Project::where("handle",$handle)->with("statuses")->with("user")->with("assignees.user")->first();
         if(isset($projectDetails) && !empty($projectDetails)){

@@ -17,8 +17,8 @@ return [
     */
 
     'mailgun' => [
-        'domain' => env('MAILGUN_DOMAIN'),
-        'secret' => env('MAILGUN_SECRET'),
+        'domain' => env('mail.kft.co.in'),
+        'secret' => env('@kft12345@'),
     ],
 
     'ses' => [
@@ -36,7 +36,6 @@ return [
         'key' => env('STRIPE_KEY'),
         'secret' => env('STRIPE_SECRET'),
     ],
-
     /*
      * Socialite Credentials
      * Redirect URL's need to be the same as specified on each network you set up this application on

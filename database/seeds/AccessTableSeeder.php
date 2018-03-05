@@ -24,6 +24,8 @@ class AccessTableSeeder extends Seeder
         $this->call(UserRoleSeeder::class);
         $this->call(StatusesTableSeeder::class);
         $this->call(PriortyTableSeeder::class);
+        $this->call(CommentTypeTableSeeder::class);
+        $this->call(NotificationTypeTableSeeder::class);
         $this->call(PermissionTableSeeder::class);
         $this->call(PermissionRoleSeeder::class);
 

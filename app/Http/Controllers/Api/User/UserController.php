@@ -39,7 +39,7 @@ class UserController extends Controller
         }
     }
 
-    /* Function will login user only after validating details and matching credentials with database */
+    /* Function will login user only after validating details and matching credentials with database */ 
     public function loginUser(Request $request){
         try {
             // validate form data need to move this to request folder
@@ -97,7 +97,6 @@ class UserController extends Controller
                 ], 200);
             }
         }
-        
     }
 
     /* Function will single user details using JWT token */
@@ -205,4 +204,3 @@ class UserController extends Controller
         }
     }
 }
-
