@@ -1,5 +1,5 @@
 <?php
 
-Route::group(['namespace' => 'Notification', 'prefix' => 'notifications/', 'as' => 'notifications.','middleware'=> ['cors']], function () {
+Route::group(['namespace' => 'Notification', 'middleware' => 'jwt.auth', 'prefix' => 'notifications/', 'as' => 'notifications.'], function () {
     Route::get('', 'NotificationController@get_all_notifications')->name('get_all_notifications');
 });
